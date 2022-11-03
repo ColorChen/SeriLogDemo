@@ -1,11 +1,24 @@
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
+using SeriLogDemo_Net6;
+using SeriLogDemo_Net6.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
    .ReadFrom.Configuration(builder.Configuration)
    .CreateLogger();
+
+var env = builder.Environment;
+var configBuilder = new ConfigurationBuilder()
+                     .SetBasePath(Directory.GetCurrentDirectory())
+                     .AddJsonFile("appsettings.json")
+                     .AddJsonFile(path: $"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+var config = configBuilder.Build();
+var seriLogDemoConfig = new SeriLogDemoConfig();
+config.Bind(seriLogDemoConfig);
 
 // Add services to the container.
 try
@@ -14,6 +27,9 @@ try
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+
+    builder.Services.AddDbContext<SeriLogContext>(options =>
+                   options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 
     builder.Host.UseSerilog();
 
