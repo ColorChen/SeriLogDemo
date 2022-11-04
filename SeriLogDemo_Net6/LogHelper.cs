@@ -28,7 +28,7 @@ namespace SeriLogDemo_Net6
         {
             var request = httpContext.Request;
 
-            string requestBodyPayload = await ReadBodyFromRequest2(httpContext.Request);
+            string requestBodyPayload = await ReadBodyFromRequest(httpContext.Request);
             if(!string.IsNullOrEmpty(requestBodyPayload))
                 diagnosticContext.Set("RequestBody", requestBodyPayload);
 
@@ -57,6 +57,41 @@ namespace SeriLogDemo_Net6
                 diagnosticContext.Set("EndpointName", endpoint.DisplayName);
             }
             
+        }
+
+        public static async void EnrichFromRequest2(IDiagnosticContext diagnosticContext, HttpContext httpContext)
+        {
+            var request = httpContext.Request;
+
+            string requestBodyPayload = await ReadBodyFromRequest(httpContext.Request);
+            if (!string.IsNullOrEmpty(requestBodyPayload))
+                diagnosticContext.Set("RequestBody", requestBodyPayload);
+
+
+            string responseBodyPayload = await ReadBodyFromResponse(httpContext.Response);
+            diagnosticContext.Set("ResponseBody", responseBodyPayload);
+
+            // Set all the common properties available for every request
+            diagnosticContext.Set("Host", request.Host);
+            diagnosticContext.Set("Protocol", request.Protocol);
+            diagnosticContext.Set("Scheme", request.Scheme);
+
+            // Only set it if available. You're not sending sensitive data in a querystring right?!
+            if (request.QueryString.HasValue)
+            {
+                diagnosticContext.Set("QueryString", request.QueryString.Value);
+            }
+
+            // Set the content-type of the Response at this point
+            diagnosticContext.Set("ContentType", httpContext.Response.ContentType);
+
+            // Retrieve the IEndpointFeature selected for the request
+            var endpoint = httpContext.GetEndpoint();
+            if (endpoint is object) // endpoint != null
+            {
+                diagnosticContext.Set("EndpointName", endpoint.DisplayName);
+            }
+
         }
 
         private static async Task<string> ReadBodyFromResponse(HttpResponse response)
