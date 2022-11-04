@@ -1,5 +1,6 @@
-using Serilog;
+ï»¿using Serilog;
 using Serilog.Events;
+using Serilog.Extensions.Hosting;
 using SeriLogDemo_Net6;
 using SeriLogDemo_Net6.Repository;
 
@@ -40,22 +41,41 @@ try
         app.UseSwaggerUI();
     }
 
-    app.UseSerilogRequestLogging(options =>
-    {
-        // ¦pªG­n¦Û­q°T®§ªº½d¥»®æ¦¡¡A¥i¥H­×§ï³o¸Ì¡A¦ý­×§ï«á¨Ã¤£·|¼vÅTµ²ºc¤Æ°O¿ýªºÄÝ©Ê
-        // options.MessageTemplate = "Handled {RequestPath}";
+    #region UseSerilogRequestLogging åƒè€ƒç¯„ä¾‹
+    //app.UseSerilogRequestLogging(options =>
+    //{
+    //    // å¦‚æžœè¦è‡ªè¨‚è¨Šæ¯çš„ç¯„æœ¬æ ¼å¼ï¼Œå¯ä»¥ä¿®æ”¹é€™è£¡ï¼Œä½†ä¿®æ”¹å¾Œä¸¦ä¸æœƒå½±éŸ¿çµæ§‹åŒ–è¨˜éŒ„çš„å±¬æ€§
+    //    // options.MessageTemplate = "Handled {RequestPath}";
 
-        // ¹w³]¿é¥Xªº¬ö¿ýµ¥¯Å¬° Information¡A§A¥i¥H¦b¦¹­×§ï°O¿ýµ¥¯Å
-        // options.GetLevel = (httpContext, elapsed, ex) => LogEventLevel.Debug;
+    //    // é è¨­è¼¸å‡ºçš„ç´€éŒ„ç­‰ç´šç‚º Informationï¼Œä½ å¯ä»¥åœ¨æ­¤ä¿®æ”¹è¨˜éŒ„ç­‰ç´š
+    //    // options.GetLevel = (httpContext, elapsed, ex) => LogEventLevel.Debug;
 
-        // §A¥i¥H±q httpContext ¨ú±o HttpContext ¤U©Ò¦³¥i¥H¨ú±oªº¸ê°T¡I
-        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
-        {
-            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-            diagnosticContext.Set("UserID", httpContext.User.Identity?.Name);
-        };
+    //    // ä½ å¯ä»¥å¾ž httpContext å–å¾— HttpContext ä¸‹æ‰€æœ‰å¯ä»¥å–å¾—çš„è³‡è¨Šï¼
+    //    options.EnrichDiagnosticContext = async (diagnosticContext, httpContext) =>
+    //    {
+    //        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+    //        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+
+    //        #region è‡ªå®šç¾©çš„å±¬æ€§
+
+
+    //        diagnosticContext.Set("RequestQueryString", httpContext.Request.QueryString.Value);
+    //        diagnosticContext.Set("Protocol", httpContext.Request.Protocol);
+    //        diagnosticContext.Set("RequestBody", await LogHelper.ReadBodyFromRequest(httpContext.Request));
+
+    //        // Set the content-type of the Response at this point
+    //        diagnosticContext.Set("ContentType", httpContext.Response.ContentType);
+    //        #endregion
+
+    //        diagnosticContext.Set("UserID", httpContext.User.Identity?.Name);
+    //    };
+    //});
+    #endregion
+    app.UseMiddleware<RequestResponseLoggingMiddleware>();
+    app.UseSerilogRequestLogging(opts => {
+        opts.EnrichDiagnosticContext = LogHelper.EnrichFromRequest;
     });
+
 
     app.UseAuthorization();
 
@@ -71,5 +91,7 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+
 
 
