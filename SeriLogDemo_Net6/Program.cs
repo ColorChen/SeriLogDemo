@@ -1,9 +1,14 @@
-﻿using Serilog;
+﻿using Microsoft.AspNetCore.Identity;
+using Serilog;
 using Serilog.Events;
 using Serilog.Extensions.Hosting;
 using SeriLogDemo_Net6;
 using SeriLogDemo_Net6.Extensions;
 using SeriLogDemo_Net6.Repository;
+
+var win = Environment.GetEnvironmentVariable("windir");
+Console.WriteLine(win);
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +26,8 @@ var config = configBuilder.Build();
 var seriLogDemoConfig = new SeriLogDemoConfig();
 config.Bind(seriLogDemoConfig);
 
+Console.WriteLine($"EnvironmentName :{seriLogDemoConfig.EnvironmentName}");
+
 // Add services to the container.
 try
 {
@@ -30,6 +37,8 @@ try
     builder.Services.AddSwaggerGen();
 
     builder.Services.AddScoped<WorkRepository>();
+
+    builder.Services.AddMemoryCache();
 
     builder.Host.UseSerilog();
 
@@ -43,11 +52,22 @@ try
     }
     app.UseSerilogRequestResponseLogging();
 
+    app.UseRouting();
+
     app.UseAuthorization();
 
     app.MapControllers();
 
-    
+    app.UseEndpoints(endpoint =>
+    {
+        endpoint.MapGet("/", async context =>
+        {
+            await context.Response.WriteAsync("Process name:" + System.Diagnostics.Process.GetCurrentProcess().ProcessName);
+        });
+    });
+
+
+
 
     app.Run();
 }
