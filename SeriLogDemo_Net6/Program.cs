@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Events;
 using Serilog.Extensions.Hosting;
 using SeriLogDemo_Net6;
 using SeriLogDemo_Net6.Extensions;
 using SeriLogDemo_Net6.Repository;
+using StackExchange.Redis;
 
 var win = Environment.GetEnvironmentVariable("windir");
 Console.WriteLine(win);
@@ -40,6 +42,11 @@ try
 
     builder.Services.AddMemoryCache();
 
+    builder.Services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect(new ConfigurationOptions() {
+        EndPoints={ $"{SeriLogDemoConfig.ConnectionStrings.RedisConnection}" },
+        AbortOnConnectFail = false
+    }));
+                 
     builder.Host.UseSerilog();
 
     var app = builder.Build();

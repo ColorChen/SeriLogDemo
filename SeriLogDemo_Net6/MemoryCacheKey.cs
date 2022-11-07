@@ -3,5 +3,6 @@
     public static class MemoryCacheKey
     {
         public static string Work = "Work";
+        public static string WorkNotExpire = "WorkNotExpire";
     }
 }
