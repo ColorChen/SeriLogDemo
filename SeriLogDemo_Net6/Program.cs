@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
 using Serilog.Extensions.Hosting;
@@ -38,7 +39,7 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
-    builder.Services.AddScoped<WorkRepository>();
+    // builder.Services.AddScoped<WorkRepository>(o=>new WorkRepository(SeriLogDemoConfig.ConnectionStrings.DefaultConnection));
 
     builder.Services.AddMemoryCache();
 
@@ -52,11 +53,14 @@ try
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+    //if (app.Environment.IsDevelopment())
+    //{
+    //    app.UseSwagger();
+    //    app.UseSwaggerUI();
+    //}
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
     app.UseSerilogRequestResponseLogging();
 
     app.UseRouting();

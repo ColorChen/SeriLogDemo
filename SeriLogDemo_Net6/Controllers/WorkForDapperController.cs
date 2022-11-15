@@ -16,7 +16,7 @@ namespace WebApplication2.Controllers
 
         public WorkForDapperController(WorkRepository workRepository)
         {
-            _workRepository = workRepository;
+            _workRepository = workRepository ?? throw new AggregateException(nameof(workRepository)); 
         }
         /// <summary>
         /// 查詢卡片列表

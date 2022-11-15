@@ -8,11 +8,16 @@ namespace SeriLogDemo_Net6.Repository
     public class WorkRepository
     {
 
+        public WorkRepository(string connectString) {
+            _connectString = connectString;
+        }
+
         /// <summary>
         /// 連線字串
         /// </summary>
         // private readonly string _connectString = @"Server=(LocalDB)\MSSQLLocalDB;Database=Newbie;Trusted_Connection=True;";
-        private readonly string _connectString = SeriLogDemo_Net6.SeriLogDemoConfig.ConnectionStrings.DefaultConnection;
+        // private readonly string _connectString = SeriLogDemo_Net6.SeriLogDemoConfig.ConnectionStrings.DefaultConnection;
+        private readonly string _connectString;
 
         /// <summary>
         /// 查詢卡片列表
