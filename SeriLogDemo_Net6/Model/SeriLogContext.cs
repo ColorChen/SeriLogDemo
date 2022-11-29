@@ -15,5 +15,7 @@ namespace SeriLogDemo_Net6.Model
         /// 
         /// </summary>
         public DbSet<Work> Work { get; set; }
+
+        public DbSet<t_agent> t_agent { get; set; }
     }
 }
