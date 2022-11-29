@@ -1,16 +1,24 @@
 ﻿using Dapper;
 // using Microsoft.Data.SqlClient;
 using SeriLogDemo_Net6.Model;
+using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics.Eventing.Reader;
+using Dapper.Extensions.MSSQL;
+using Dapper.Extensions;
+using Serilog;
 
 namespace SeriLogDemo_Net6.Repository
 {
     public class WorkRepository
     {
-
-        public WorkRepository(string connectString) {
+        readonly IDiagnosticContext _diagnosticContext;
+        public WorkRepository(string connectString, IDiagnosticContext diagnosticContext) {
             _connectString = connectString;
+            _diagnosticContext = diagnosticContext;
         }
+
+        
 
         /// <summary>
         /// 連線字串
@@ -25,9 +33,33 @@ namespace SeriLogDemo_Net6.Repository
         /// <returns></returns>
         public IEnumerable<Work> GetList()
         {
-            using (var conn = new SqlConnection(_connectString))
-            return  conn.Query<Work>("SELECT * FROM Work");
+            var aSql = "SELECT * FROM Work";
+            using (var conn = new SqlConnection(_connectString)) {
+                var result = conn.Query<Work>(
+                sql: aSql
+                );
+                _diagnosticContext.Set("sql execute", new { sql = aSql, result = result });
+                return result;
+            }
+            
+            //return  conn.Query<Work>(
+            //    sql: aSql
+            //    );
+
+
+            
         }
+
+        //public IEnumerable<Work> GetListDapperExtension(bool useCache = false)
+        //{
+        //    return _Repo.Query<Work>(
+        //        sql:"SELECT * FROM Work;",
+        //        commandType:CommandType.Text,
+        //        enableCache:useCache,
+        //        cacheKey: "GetListDapperExtension",
+        //        cacheExpire:TimeSpan.FromSeconds(10)
+        //        );
+        //}
 
         /// <summary>
         /// 查詢卡片

@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Dapper.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SeriLogDemo_Net6.Model;
 using SeriLogDemo_Net6.Repository;
+using System.Data;
 
 namespace WebApplication2.Controllers
 {
@@ -14,9 +16,13 @@ namespace WebApplication2.Controllers
         /// </summary>
         private readonly WorkRepository _workRepository;
 
-        public WorkForDapperController(WorkRepository workRepository)
+        private IDapper Repo { get; }
+
+        public WorkForDapperController(WorkRepository workRepository, IDapper repo)
         {
-            _workRepository = workRepository ?? throw new AggregateException(nameof(workRepository)); 
+            _workRepository = workRepository ?? throw new AggregateException(nameof(workRepository));
+            Repo = repo ?? throw new AggregateException(nameof(repo));
+            
         }
         /// <summary>
         /// 查詢卡片列表
@@ -26,6 +32,29 @@ namespace WebApplication2.Controllers
         public IEnumerable<Work> GetList()
         {
             return this._workRepository.GetList();
+            // return this._workRepository.GetListDapperExtension();
+            // return Repo.Query<Work>("select * from work;");
+        }
+
+        /// <summary>
+        /// 查詢卡片列表
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("GetList")]
+        public IEnumerable<Work> GetList2()
+        {
+            // return this.Repo.Query<Work>("select * from Work;");
+
+            return Repo.Query<Work>(
+                sql: "SELECT * FROM Work;",
+                commandType: CommandType.Text,
+                enableCache: true,
+                cacheKey: "GetListDapperExtension",
+                cacheExpire: TimeSpan.FromMinutes(2)
+                );
+            // return this._workRepository.GetListDapperExtension();
+            // return Repo.Query<Work>("select * from work;");
         }
 
         /// <summary>
@@ -60,6 +89,37 @@ namespace WebApplication2.Controllers
                 return Ok();
             }
             return StatusCode(500);
+        }
+
+        /// <summary>
+        /// 新增卡片
+        /// </summary>
+        /// <param name="parameter">卡片參數</param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("Insert2")]
+        public IActionResult Insert2([FromBody] WorkParameter parameter)
+        {
+            this.Repo.Execute(@" INSERT INTO Work 
+        (
+            [Name]
+            ,[UpdatedTime]  
+            ,[CreatedDateTime]
+        ) 
+        VALUES 
+        (
+            @Name
+           ,@CreatedDateTime
+           ,@UpdatedTime
+        );", parameter);
+
+            return Ok();
+            //if (result > 0)
+            //{
+            //    return Ok();
+            //}
+
+            //return StatusCode(500);
         }
 
         /// <summary>

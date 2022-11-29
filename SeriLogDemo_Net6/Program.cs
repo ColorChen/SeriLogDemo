@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Autofac.Core;
+using Dapper.Extensions;
+using Dapper.Extensions.Caching.Redis;
+using Dapper.Extensions.MSSQL;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -8,12 +12,14 @@ using SeriLogDemo_Net6;
 using SeriLogDemo_Net6.Extensions;
 using SeriLogDemo_Net6.Repository;
 using StackExchange.Redis;
+using System.Security.Cryptography.Xml;
 
 var win = Environment.GetEnvironmentVariable("windir");
 Console.WriteLine(win);
 
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 Log.Logger = new LoggerConfiguration()
    .ReadFrom.Configuration(builder.Configuration)
@@ -39,7 +45,20 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
-    // builder.Services.AddScoped<WorkRepository>(o=>new WorkRepository(SeriLogDemoConfig.ConnectionStrings.DefaultConnection));
+    builder.Services.AddDapperForMSSQL();
+
+
+    builder.Services.AddDapperCachingInRedis(new RedisConfiguration
+    {
+        AllMethodsEnableCache = false,
+        KeyPrefix = "RedisNet6",
+        ConnectionString = SeriLogDemoConfig.ConnectionStrings.RedisConnection
+    });
+
+
+
+
+    builder.Services.AddScoped<WorkRepository>(o=>new WorkRepository(SeriLogDemoConfig.ConnectionStrings.DefaultConnection,o.GetRequiredService<IDiagnosticContext>()));
 
     builder.Services.AddMemoryCache();
 
@@ -49,6 +68,8 @@ try
     }));
                  
     builder.Host.UseSerilog();
+
+    
 
     var app = builder.Build();
 
